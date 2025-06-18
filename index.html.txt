@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MHM Monthly Check-In</title>
+  <script>
+    function createEvent() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const day = now.getDate();
+
+      // Set initial date to the next 25th at 2 PM
+      let eventDate = new Date(year, month, 25, 14, 0);
+      if (day > 25) {
+        eventDate.setMonth(month + 1);
+      }
+
+      const startDate = formatDate(eventDate);
+      const endDate = formatDate(new Date(eventDate.getTime() + 60 * 60 * 1000)); // +1 hr
+
+      const title = encodeURIComponent("Reminder: MHM Monthly Check-in");
+      const details = encodeURIComponent(`A reminder to complete your 'Mental Health Monitoring' (MHM) Monthly check-in in your MHM journey.
+
+Contact us via phone/text/email:
+Call/Text: 1-888-381-6508
+Email: ptsslab@uregina.ca`);
+
+      const recurRule = encodeURIComponent("RRULE:FREQ=MONTHLY;BYMONTHDAY=25;UNTIL=" + getUntilDate(eventDate));
+      
+      const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${details}&recur=${recurRule}`;
+
+      // iOS Safari doesn't support Google Calendar redirects reliably
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIOS) {
+        alert("On iOS, you'll be redirected to download an .ics file to add this to your calendar.");
+        window.location.href = generateICS(eventDate);
+      } else {
+        window.location.href = googleUrl;
+      }
+    }
+
+    function formatDate(date) {
+      return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    }
+
+    function getUntilDate(startDate) {
+      let until = new Date(startDate);
+      until.setFullYear(until.getFullYear() + 3);
+      return formatDate(until).slice(0, 8) + "T140000Z";
+    }
+
+    function generateICS(startDate) {
+      const until = new Date(startDate);
+      until.setFullYear(until.getFullYear() + 3);
+
+      const formatICS = (date) => {
+        return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+      };
+
+      const start = formatICS(startDate);
+      const end = formatICS(new Date(startDate.getTime() + 60 * 60 * 1000));
+      const untilStr = formatICS(until).slice(0, 8) + "T140000Z";
+
+      const icsContent = `
+BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+SUMMARY:Reminder: MHM Monthly Check-in
+DTSTART:${start}
+DTEND:${end}
+RRULE:FREQ=MONTHLY;BYMONTHDAY=25;UNTIL=${untilStr}
+DESCRIPTION:A reminder to complete your 'Mental Health Monitoring' (MHM) Monthly check-in in your MHM journey.\\n\\nContact us via phone/text/email:\\nCall/Text: 1-888-381-6508\\nEmail: ptsslab@uregina.ca
+END:VEVENT
+END:VCALENDAR`.trim();
+
+      return "data:text/calendar;charset=utf8," + encodeURIComponent(icsContent);
+    }
+  </script>
+</head>
+<body onload="createEvent()">
+  <p>Redirecting you to add the MHM Monthly Check-in event...</p>
+</body>
+</html>
