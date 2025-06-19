@@ -1,10 +1,61 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Thank You!</title>
+  <meta charset="UTF-8" />
+  <title>MHM Annual Assessment</title>
+  <script>
+    function createAnnualEvent() {
+      const now = new Date();
+      const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 14, 0); // 2 PM today
+      const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // +1 hour
+
+      const title = encodeURIComponent("Reminder: MHM Annual Assessment");
+      const details = encodeURIComponent(
+        `A reminder to complete your 'Mental Health Monitoring' (MHM) Annual Assessment in your MHM journey.\n\nContact us via phone/text/email:\nCall/Text: 1-888-381-6508\nEmail: ptsslab@uregina.ca`
+      );
+
+      // Get UNTIL date = +3 years from start
+      const until = new Date(startDate);
+      until.setFullYear(until.getFullYear() + 3);
+      const untilStr = until.toISOString().split('T')[0].replace(/-/g, "") + "T140000Z";
+
+      // Recurrence rule: Yearly on same day and month
+      const recurRule = encodeURIComponent(`RRULE:FREQ=YEARLY;UNTIL=${untilStr}`);
+
+      // Google Calendar link
+      const formatDate = d => d.toISOString().replace(/-|:|\.\d\d\d/g, "").slice(0, 15) + "Z";
+      const start = formatDate(startDate);
+      const end = formatDate(endDate);
+
+      const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}&recur=${recurRule}`;
+
+      // Apple/iOS fallback via .ics file
+      const appleIcs = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+SUMMARY:Reminder: MHM Annual Assessment
+DTSTART:${start}
+DTEND:${end}
+RRULE:FREQ=YEARLY;UNTIL=${untilStr}
+DESCRIPTION:A reminder to complete your 'Mental Health Monitoring' (MHM) Annual Assessment in your MHM journey.\\n\\nContact us via phone/text/email:\\nCall/Text: 1-888-381-6508\\nEmail: ptsslab@uregina.ca
+END:VEVENT
+END:VCALENDAR`;
+
+      if (/android/i.test(navigator.userAgent)) {
+        // Android → Google Calendar
+        window.location.href = googleUrl;
+      } else {
+        // iOS → .ics download
+        const blob = new Blob([appleIcs], { type: "text/calendar" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "MHM_Annual_Assessment.ics";
+        link.click();
+      }
+    }
+  </script>
 </head>
-<body>
-  <h1>Thanks for adding the MHM Check-in!</h1>
-  <p>You’re helping normalize mental health support. 💙</p>
+<body onload="createAnnualEvent()">
+  <h1>Redirecting to your calendar…</h1>
 </body>
 </html>
