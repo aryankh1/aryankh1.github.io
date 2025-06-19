@@ -6,7 +6,9 @@
   <script>
     function createAnnualEvent() {
       const now = new Date();
-      const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 14, 0); // 2 PM today
+      
+      // Set start date to same day/month next year at 2:00 PM
+      const startDate = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate(), 14, 0);
       const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // +1 hour
 
       const title = encodeURIComponent("Reminder: MHM Annual Assessment");
@@ -14,22 +16,22 @@
         `A reminder to complete your 'Mental Health Monitoring' (MHM) Annual Assessment in your MHM journey.\n\nContact us via phone/text/email:\nCall/Text: 1-888-381-6508\nEmail: ptsslab@uregina.ca`
       );
 
-      // Get UNTIL date = +3 years from start
+      // UNTIL = start date + 3 years
       const until = new Date(startDate);
       until.setFullYear(until.getFullYear() + 3);
       const untilStr = until.toISOString().split('T')[0].replace(/-/g, "") + "T140000Z";
 
-      // Recurrence rule: Yearly on same day and month
+      // RRULE for yearly recurrence
       const recurRule = encodeURIComponent(`RRULE:FREQ=YEARLY;UNTIL=${untilStr}`);
 
-      // Google Calendar link
+      // Format date for Google Calendar
       const formatDate = d => d.toISOString().replace(/-|:|\.\d\d\d/g, "").slice(0, 15) + "Z";
       const start = formatDate(startDate);
       const end = formatDate(endDate);
 
       const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}&recur=${recurRule}`;
 
-      // Apple/iOS fallback via .ics file
+      // Apple .ics fallback
       const appleIcs = `BEGIN:VCALENDAR
 VERSION:2.0
 BEGIN:VEVENT
@@ -42,10 +44,8 @@ END:VEVENT
 END:VCALENDAR`;
 
       if (/android/i.test(navigator.userAgent)) {
-        // Android → Google Calendar
         window.location.href = googleUrl;
       } else {
-        // iOS → .ics download
         const blob = new Blob([appleIcs], { type: "text/calendar" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
