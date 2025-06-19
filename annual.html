@@ -16,9 +16,9 @@
         `A reminder to complete your 'Mental Health Monitoring' (MHM) Annual Assessment in your MHM journey.\n\nContact us via phone/text/email:\nCall/Text: 1-888-381-6508\nEmail: ptsslab@uregina.ca`
       );
 
-      // UNTIL = start date + 3 years
+      // UNTIL = start date + 2 years (gives 3 total occurrences)
       const until = new Date(startDate);
-      until.setFullYear(until.getFullYear() + 3);
+      until.setFullYear(until.getFullYear() + 2);
       const untilStr = until.toISOString().split('T')[0].replace(/-/g, "") + "T140000Z";
 
       // RRULE for yearly recurrence
